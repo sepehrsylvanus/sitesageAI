@@ -142,11 +142,109 @@ export function CategoriesSection() {
     </section>
   );
 }
+
+const EXAMPLE_FINDINGS = [
+  {
+    sev: "HIGH",
+    tone: "text-sev-high border-sev-high/30 bg-sev-high/10",
+    title: "3 images missing the alt attribute",
+    evidence:
+      "Example: /assets/beans-texture.jpg — assistive tech reads the filename",
+    tag: "deterministic check",
+  },
+  {
+    sev: "MEDIUM",
+    tone: "text-sev-medium border-sev-medium/30 bg-sev-medium/10",
+    title: "Content-Security-Policy header missing",
+    evidence: "CSP is the primary browser-enforced mitigation for XSS",
+    tag: "deterministic check",
+  },
+  {
+    sev: "LOW",
+    tone: "text-sev-low border-sev-low/30 bg-sev-low/10",
+    title: "No social preview metadata",
+    evidence: "Zero og:* properties — shared links render bare",
+    tag: "ai synthesis",
+  },
+];
 export function ExampleFindingsSection() {
-  return <h3>ExampleFindingsSection</h3>;
+  return (
+    <section className="px-4 py-14 sm:px-6">
+      <div className="mx-auto max-w-6xl">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <Badge tone="ts">output taste</Badge>
+            <h2 className="mt-4 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+              Findings with receipts
+            </h2>
+          </div>
+          <Link
+            href="/reports/example"
+            className="focus-ring inline-flex items-center gap-1.5 text-sm font-medium text-ts-300 hover:text-ts-200"
+          >
+            Open the full example report{" "}
+            <ArrowRight className="size-4" aria-hidden />
+          </Link>
+        </div>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {EXAMPLE_FINDINGS.map((f) => (
+            <div key={f.title} className="glass rounded-2xl p-5">
+              <div className="flex items-center justify-between">
+                <span
+                  className={cn(
+                    "rounded-md border px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wider",
+                    f.tone,
+                  )}
+                >
+                  {f.sev}
+                </span>
+                <span className="font-mono text-[10px] text-slate-600">
+                  {f.tag}
+                </span>
+              </div>
+              <h3 className="mt-3 text-sm font-semibold text-white">
+                {f.title}
+              </h3>
+              <p className="mt-2 rounded-lg bg-ink-950/80 p-2.5 font-mono text-[11px] leading-relaxed text-cyan-200/80">
+                {f.evidence}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }
 export function FinalCtaSection() {
-  return <h3>FinalCtaSection</h3>;
+  return (
+    <section className="overflow-hidden px-4 py-16 text-center sm:px-6 sm:py-20">
+      <div className="relative mx-auto max-w-2xl">
+        <div
+          className="pointer-events-none absolute -inset-x-20 -top-10 h-56 opacity-50"
+          style={{
+            background:
+              "radial-gradient(closest-side, rgba(34,211,238,0.18), transparent)",
+          }}
+          aria-hidden
+        />
+        <h2 className="relative text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          Give the agent a URL.
+          <br />
+          Get a plan, not platitudes.
+        </h2>
+        <p className="relative mt-4 text-sm text-slate-400">
+          Evidence-backed findings, Next.js code fixes, and a prioritized action
+          plan — exportable as Markdown or JSON.
+        </p>
+        <Link href="/audit" className="relative mt-8 inline-block">
+          <Button size="lg">
+            <Play className="size-4" aria-hidden /> Start your first audit
+          </Button>
+        </Link>
+      </div>
+    </section>
+  );
 }
 export function HeroSection({ demoMode }: { demoMode: boolean }) {
   const router = useRouter();
@@ -440,11 +538,50 @@ export function MiniAgentTimeline() {
   );
 }
 export function SecurityNoteSection() {
-  return <h3>SecurityNoteSection</h3>;
+  return (
+    <section className="px-4 py-14 sm:px-6">
+      <div className="mx-auto max-w-6xl rounded-2xl border border-emerald-400/[0.14] bg-emerald-400/4 p-6 sm:p-8">
+        <div className="flex flex-col gap-6 md:flex-row md:items-start">
+          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-400/15 text-emerald-300">
+            <ShieldCheck className="size-6" aria-hidden />
+          </span>
+          <div className="grid flex-1 gap-4 sm:grid-cols-3">
+            <div>
+              <h3 className="flex items-center gap-1.5 text-sm font-semibold text-white">
+                <ShieldCheck
+                  className="size-3.5 text-emerald-300"
+                  aria-hidden
+                />{" "}
+                SSRF-hardened
+              </h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
+                DNS-resolved IP allowlisting, private-range rejection, per-hop
+                redirect re-validation, strict size & time budgets.
+              </p>
+            </div>
+            <div>
+              <h3 className="flex items-center gap-1.5 text-sm font-semibold text-white">
+                <KeyRound className="size-3.5 text-emerald-300" aria-hidden />{" "}
+                Server-held keys
+              </h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
+                The AI key never reaches the browser. No cookies are forwarded,
+                no remote JavaScript executes.
+              </p>
+            </div>
+            <div>
+              <h3 className="flex items-center gap-1.5 text-sm font-semibold text-white">
+                <EyeOff className="size-3.5 text-emerald-300" aria-hidden /> No
+                chain-of-thought
+              </h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
+                The timeline exposes operational status only. Hidden reasoning
+                never leaves the agent loop.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
-
-const Home = () => {
-  return <div>Home</div>;
-};
-
-export default Home;
