@@ -26,8 +26,121 @@ import { cn } from "@/lib/utils";
 import { Badge, Button, Input } from "@/components/ui";
 import { CATEGORY_META } from "@/components/report/category-meta";
 
+const CATEGORY_POINTS: Record<string, string[]> = {
+  seo: [
+    "Title & meta description quality",
+    "Canonical, robots, hreflang hints",
+    "Open Graph / Twitter cards",
+    "JSON-LD structured data",
+    "robots.txt & sitemap probes",
+  ],
+  accessibility: [
+    "Alt text coverage & decorative heuristics",
+    "Heading outline integrity",
+    "Landmark regions (main/nav)",
+    "Duplicate ID detection",
+    "Empty-alt review, not blame",
+  ],
+  performance: [
+    "Measured Lighthouse data (optional PSI key)",
+    "Heuristics from the real document",
+    "Script / stylesheet / image budgets",
+    "Response-time signals",
+    "No fabricated Web Vitals — ever",
+  ],
+  security: [
+    "CSP & frame-ancestors analysis",
+    "HSTS, nosniff, referrer policy",
+    "Permissions-Policy coverage",
+    "Cookie flag observations",
+    "Honest 'one layer of defense' framing",
+  ],
+  html: [
+    "Doctype, lang, viewport basics",
+    "Semantic element census",
+    "Broken-link sampling (full mode)",
+    "unsafe target=_blank detection",
+    "Form & interactive counts",
+  ],
+};
+
 export function CategoriesSection() {
-  return <h3>CategoriesSection</h3>;
+  return (
+    <section className="px-4 py-14 sm:px-6">
+      <div className="mx-auto max-w-6xl">
+        <div className="max-w-2xl">
+          <Badge tone="ts">coverage</Badge>
+          <h2 className="mt-4 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            Five audit lenses, one agent
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-slate-400">
+            Each category is produced by a dedicated deterministic analyzer. The
+            agent chooses which ones to run based on your audit mode.
+          </p>
+        </div>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {(
+            Object.keys(CATEGORY_META) as Array<keyof typeof CATEGORY_META>
+          ).map((key, i) => {
+            const meta = CATEGORY_META[key];
+            const Icon = meta.icon;
+
+            return (
+              <div
+                key={key}
+                className="glass rounded-2xl p-5 transition-transform duration-300 hover:-translate-y-1 animate-fade-up"
+                style={{ animationDelay: `${i * 70}ms` }}
+              >
+                <span
+                  className="grid size-10 place-items-center rounded-xl"
+                  style={{ background: `${meta.color}1f`, color: meta.color }}
+                >
+                  <Icon className="size-5" aria-hidden />
+                </span>
+                <h3 className="mt-4 text-base font-semibold text-white">
+                  {meta.label}
+                </h3>
+                <ul className="mt-3 space-y-1.5">
+                  {(CATEGORY_POINTS[key] ?? []).map((point) => (
+                    <li
+                      key={point}
+                      className="flex gap-2 text-xs leading-relaxed text-slate-400"
+                    >
+                      <span
+                        className="mt-1.5 size-1 shrink-0 rounded-full"
+                        style={{ background: meta.color }}
+                        aria-hidden
+                      />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+
+          <div className="glass relative overflow-hidden rounded-2xl p-5">
+            <div
+              className="absolute inset-x-0 top-0 h-20 animate-scan bg-linear-to-b from-transparent via-ts-500/12 to-transparent"
+              aria-hidden
+            />
+
+            <span className="grid size-10 place-items-center rounded-xl bg-ts-500/15 text-ts-300">
+              <Gauge className="size-5" aria-hidden />
+            </span>
+            <h3 className="mt-4 text-base font-semibold text-white">
+              Measured vs heuristic
+            </h3>
+            <p className="mt-3 text-xs leading-relaxed text-slate-400">
+              With a Google PageSpeed key, performance data is real Lighthouse
+              output. Without one, the agent reports clearly-labelled heuristics
+              and says exactly that in the report.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
 export function ExampleFindingsSection() {
   return <h3>ExampleFindingsSection</h3>;
