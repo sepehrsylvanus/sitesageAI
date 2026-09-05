@@ -240,8 +240,65 @@ export function HeroSection({ demoMode }: { demoMode: boolean }) {
     </section>
   );
 }
+
+const STEPS = [
+  {
+    title: "Plan",
+    body: "The agent receives your URL + mode and a menu of tool schemas — then decides what evidence to collect.",
+  },
+  {
+    title: "Fetch",
+    body: "fetch_website_snapshot runs through SSRF checks, DNS validation, redirect re-validation and a 1 MB body cap.",
+  },
+  {
+    title: "Analyze",
+    body: "Deterministic analyzers parse HTML with Cheerio — no remote JavaScript ever executes.",
+  },
+  {
+    title: "Score",
+    body: "Server code subtracts visible, capped deductions. The model can explain scores but never set them.",
+  },
+  {
+    title: "Synthesize",
+    body: "A Zod-validated JSON report with findings, evidence, Next.js code fixes and a prioritized action plan.",
+  },
+];
 export function HowItWorksSection() {
-  return <h3>HowItWorksSection</h3>;
+  return (
+    <section className="px-4 py-14 sm:px-6">
+      <div className="mx-auto max-w-6xl">
+        <Badge tone="neutral">how the agent works</Badge>
+        <h2 className="mt-4 max-w-xl text-2xl font-bold tracking-tight text-white sm:text-3xl">
+          A real agent loop, not a prompt with extra steps
+        </h2>
+
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {STEPS.map((step, i) => (
+            <div
+              key={step.title}
+              className="relative rounded-2xl border border-white/[0.07] bg-ink-900/50 p-5"
+            >
+              <span className="font-mono text-3xl font-bold text-ts-500/50">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <h3 className="mt-3 text-sm font-semibold text-white">
+                {step.title}
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-500">
+                {step.body}
+              </p>
+              {i < STEPS.length - 1 ? (
+                <ArrowRight
+                  className="absolute top-1/2 -right-3.5 hidden size-4 -translate-y-1/2 text-ts-500/60 lg:block"
+                  aria-hidden
+                />
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }
 
 const SCRIPT = [
