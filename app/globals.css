@@ -1,26 +1,156 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ── SiteSage AI design tokens ─────────────────────────────────────────────
+   Deep navy developer-tool aesthetic. TypeScript blue as the primary accent,
+   terminal-cyan secondary, and a dedicated severity palette. */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@theme {
+  /* Ink — layered navy surfaces */
+  --color-ink-950: #04070f;
+  --color-ink-900: #070d1d;
+  --color-ink-850: #0a1226;
+  --color-ink-800: #0e1830;
+  --color-ink-700: #16224a;
+  --color-ink-600: #1e2f56;
+  --color-ink-500: #2c4172;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  /* TypeScript blue accent ramp */
+  --color-ts-200: #a8c7f0;
+  --color-ts-300: #7aa8e8;
+  --color-ts-400: #5589de;
+  --color-ts-500: #3178c6;
+  --color-ts-600: #235fa2;
+
+  /* Severity ramp */
+  --color-sev-critical: #f87171;
+  --color-sev-high: #fb923c;
+  --color-sev-medium: #fbbf24;
+  --color-sev-low: #38bdf8;
+  --color-sev-info: #94a3b8;
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas,
+    monospace;
+
+  --animate-fade-up: fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-fade-in: fade-in 0.4s ease both;
+  --animate-pulse-dot: pulse-dot 1.4s ease-in-out infinite;
+  --animate-scan: scan 3.2s linear infinite;
+  --animate-spin-slow: spin 2.4s linear infinite;
+  --animate-dash: dash 1.6s ease-in-out infinite;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.55);
+    }
+    50% {
+      opacity: 0.75;
+      box-shadow: 0 0 0 6px rgba(34, 211, 238, 0);
+    }
+  }
+  @keyframes scan {
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(220%);
+    }
+  }
+  @keyframes dash {
+    0% {
+      stroke-dashoffset: 240;
+    }
+    50% {
+      stroke-dashoffset: 60;
+    }
+    100% {
+      stroke-dashoffset: 240;
+    }
   }
 }
 
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-ink-950);
+  color: #dbe4f3;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(49, 120, 198, 0.45);
+  color: #f0f6ff;
+}
+
+/* Subtle blueprint grid used on hero / page shells */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(122, 162, 232, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(122, 162, 232, 0.055) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(
+    ellipse 90% 70% at 50% 0%,
+    black 55%,
+    transparent 100%
+  );
+}
+
+/* Glass panel — used sparingly for telemetry cards */
+.glass {
+  background: linear-gradient(
+    160deg,
+    rgba(18, 28, 54, 0.62),
+    rgba(9, 15, 32, 0.72)
+  );
+  border: 1px solid rgba(126, 160, 220, 0.14);
+  backdrop-filter: blur(10px);
+}
+
+/* Focus visibility for keyboard users */
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-ts-400);
+  outline-offset: 2px;
+}
+
+/* Thin scrollbars inside evidence/code blocks */
+.slim-scroll::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.slim-scroll::-webkit-scrollbar-thumb {
+  background: rgba(90, 120, 175, 0.35);
+  border-radius: 8px;
+}
+.slim-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }
