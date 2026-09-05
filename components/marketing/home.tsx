@@ -130,8 +130,144 @@ export function HeroSection({ demoMode }: { demoMode: boolean }) {
 export function HowItWorksSection() {
   return <h3>HowItWorksSection</h3>;
 }
+
+const SCRIPT = [
+  {
+    icon: Play,
+    color: "text-slate-400",
+    label: "Agent is planning the audit",
+    detail: "7 tools · budget 8 steps",
+  },
+  {
+    icon: ListChecks,
+    color: "text-sev-medium",
+    label: "Audit plan ready — selecting evidence tools",
+  },
+  {
+    icon: Loader2,
+    color: "text-cyan-300",
+    label: "Fetching website snapshot",
+    detail: "GET / → 200 · 84 KB · 412 ms",
+  },
+  {
+    icon: Wrench,
+    color: "text-slate-400",
+    label: "Inspecting HTML structure",
+    detail: "title present · 1 h1 · 0 duplicate ids",
+  },
+  {
+    icon: Wrench,
+    color: "text-slate-400",
+    label: "Checking images for missing alt text",
+    detail: "12 images · 2 missing alt",
+  },
+  {
+    icon: ShieldCheck,
+    color: "text-sev-medium",
+    label: "Analyzing security headers",
+    detail: "CSP missing · HSTS present",
+  },
+  {
+    icon: Search,
+    color: "text-ts-300",
+    label: "Running technical SEO checks",
+    detail: "9/12 checks pass",
+  },
+  {
+    icon: Sparkles,
+    color: "text-cyan-300",
+    label: "Generating prioritized recommendations",
+  },
+  {
+    icon: CheckCircle2,
+    color: "text-emerald-400",
+    label: "Audit report ready",
+    detail: "14 findings · overall 74/100",
+  },
+] as const;
+
 export function MiniAgentTimeline() {
-  return <h3>MiniAgentTimeline</h3>;
+  const [visible, setVisible] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setVisible((v) => (v >= SCRIPT.length + 2 ? 0 : v + 1));
+    }, 1100);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <section className="px-4 py-14 sm:px-6">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2">
+        <div>
+          <Badge tone="neutral" className="font-mono">
+            live trace
+          </Badge>
+          <h2 className="mt-4 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            Watch it plan, call tools, and read the results
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-slate-400">
+            The UI streams sanitized operational events — never hidden reasoning
+            — so you can literally see the agent work: which tool it picked,
+            what came back, and when it decides to write the report.
+          </p>
+          <ul className="mt-5 space-y-2 text-sm text-slate-400">
+            {[
+              "Deterministic tools, Zod-validated arguments",
+              "Hard 8-step budget — no infinite loops",
+              "Scores computed by code; the AI explains them",
+            ].map((item) => (
+              <li key={item} className="flex items-center gap-2">
+                <CheckCircle2 className="size-4 text-emerald-400" aria-hidden />{" "}
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="glass rounded-2xl p-4 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.8)]">
+          <div className="flex items-center gap-1.5 border-b border-white/6 pb-3">
+            <span className="size-2.5 rounded-full bg-sev-critical/70" />
+            <span className="size-2.5 rounded-full bg-sev-medium/70" />
+            <span className="size-2.5 rounded-full bg-emerald-400/70" />
+            <span className="ml-2 font-mono text-[10px] text-slate-600">
+              agent — activity.log
+            </span>
+          </div>
+          <div className="mt-3 min-h-72 space-y-1.5">
+            {SCRIPT.slice(0, Math.min(visible, SCRIPT.length)).map((event) => (
+              <div
+                key={event.label}
+                className="flex items-start gap-2.5 animate-fade-in"
+              >
+                <event.icon
+                  className={cn("mt-0.5 size-3.5 shrink-0", event.color)}
+                  aria-hidden
+                />
+                <div className="min-w-0">
+                  <p className="font-mono text-xs text-slate-300">
+                    {event.label}
+                  </p>
+                  {"detail" in event ? (
+                    <p className="font-mono text-[10px] text-slate-600">
+                      {event.detail}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+            {visible <= SCRIPT.length ? (
+              <span
+                className="ml-1 inline-block h-3.5 w-1.5 animate-pulse bg-ts-400/80"
+                aria-hidden
+              />
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
 export function SecurityNoteSection() {
   return <h3>SecurityNoteSection</h3>;
