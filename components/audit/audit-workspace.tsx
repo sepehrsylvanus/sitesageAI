@@ -88,6 +88,7 @@ const AuditWorkspace = ({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState<AuditRunSnapshot | null>(null);
   const [elapsed, setElapsed] = useState(0);
+  const timelineRef = useRef<HTMLDivElement | null>(null);
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -95,6 +96,27 @@ const AuditWorkspace = ({
       pollRef.current = null;
     }
   }, []);
+
+  const cancel = useCallback(async () => {
+    await fetch(`/api/audit-runs/${snapshot?.id}/cancel`, {
+      method: "POST",
+    }).catch(() => undefined);
+  }, [snapshot]);
+
+  const reset = useCallback(() => {
+    stopPolling();
+    setPhase("form");
+    setSnapshot(null);
+    setSubmitError(null);
+  }, [stopPolling]);
+
+  const progress = useMemo(() => {
+    if (!snapshot) return 0;
+    const total = Math.max(snapshot.plan.length, 1);
+    const done = snapshot.tools.filter((t) => t.status !== "running").length;
+    const base = snapshot.status === "synthesizing" ? total : done;
+    return Math.min(96, Math.round((base / total) * 100));
+  }, [snapshot]);
 
   const start = useCallback(async () => {
     if (!url.trim()) {
@@ -164,10 +186,363 @@ const AuditWorkspace = ({
             e.preventDefault();
             void start();
           }}
-        ></form>
+        >
+          <div>
+            <label
+              htmlFor="audit-url"
+              className="mb-2 block font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500"
+            >
+              Website URL
+            </label>
+            <div className="relative">
+              <Globe
+                className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-slate-600"
+                aria-hidden
+              />
+              <Input
+                id="audit-url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://your-site.com"
+                inputMode="url"
+                autoComplete="url"
+                spellCheck={false}
+                className="pl-11"
+              />
+            </div>
+          </div>
+
+          <fieldset>
+            <legend className="mb-2 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">
+              Audit mode
+            </legend>
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {AUDIT_MODES.map((m) => {
+                const Icon = MODE_ICONS[m];
+                const selected = mode === m;
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setMode(m)}
+                    aria-pressed={selected}
+                    className={cn(
+                      "focus-ring flex items-start gap-3 rounded-xl border p-3.5 text-left transition-all",
+                      selected
+                        ? "border-ts-400/60 bg-ts-500/12 shadow-[0_0_24px_-6px_rgba(49,120,198,0.5)]"
+                        : "border-white/10 bg-white/2 hover:border-white/25",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "grid size-8 shrink-0 place-items-center rounded-lg",
+                        selected
+                          ? "bg-ts-500/25 text-ts-200"
+                          : "bg-white/6text-slate-400",
+                      )}
+                    >
+                      <Icon className="size-4" aria-hidden />
+                    </span>
+                    <span>
+                      <span
+                        className={cn(
+                          "block text-sm font-semibold",
+                          selected ? "text-white" : "text-slate-300",
+                        )}
+                      >
+                        {AUDIT_MODE_LABELS[m]}
+                      </span>
+                      <span className="mt-0.5 block text-[11px] leading-snug text-slate-500">
+                        {MODE_HINTS[m]}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+
+              {submitError ? (
+                <p
+                  role="alert"
+                  className="rounded-lg border border-sev-critical/30 bg-sev-critical/10 px-4 py-2.5 text-sm text-sev-critical"
+                >
+                  {submitError}
+                </p>
+              ) : null}
+
+              <Button type="submit" size="lg" className="w-full">
+                <Play className="size-4" aria-hidden /> Start agent audit
+              </Button>
+
+              <p className="text-center text-[11px] text-slate-600">
+                {demoMode
+                  ? "Rate limited · canned snapshot in Demo Mode"
+                  : "Rate limited: 5 real audits / 10 min · SSRF-protected fetching · 8-step tool budget"}
+              </p>
+            </div>
+          </fieldset>
+        </form>
       </div>
     );
   }
+
+  if (phase === "failed") {
+    const message =
+      snapshot?.error?.message ?? "The audit failed unexpectedly.";
+
+    return (
+      <div className="mx-auto max-w-xl animate-fade-up text-center">
+        <XCircle className="mx-auto size-12 text-sev-critical" aria-hidden />
+        <h2 className="mt-4 text-xl font-semibold text-white">
+          Audit could not complete
+        </h2>
+        <p className="mt-3 rounded-xl border border-sev-critical/25 bg-sev-critical/[0.07] p-4 text-sm leading-relaxed text-slate-300">
+          {message}
+        </p>
+        <div className="mt-6 flex justify-center gap-3">
+          <Button onClick={reset}>
+            <RotateCcw className="size-4" aria-hidden /> Try again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const running = phase === "running";
+  const plan = snapshot?.plan ?? [];
+  const tools = snapshot?.tools ?? [];
+
+  return (
+    <div className="space-y-8">
+      <Card className="overflow-hidden">
+        <div className="border-b border-white/6bg-ink-900/60 px-5 py-4 sm:px-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <span
+              className={cn(
+                "relative flex size-2.5",
+                running && "animate-pulse-dot",
+              )}
+            >
+              <span
+                className={cn(
+                  "inline-flex size-2.5 rounded-full",
+                  running ? "bg-cyan-400" : "bg-emerald-400",
+                )}
+              />
+            </span>
+            <p className="min-w-0 flex-1 truncate font-mono text-sm text-slate-300">
+              {snapshot?.requestedUrl ?? url}
+            </p>
+            <Badge tone={snapshot?.demoMode ? "medium" : "ts"}>
+              {snapshot?.demoMode
+                ? "Demo run"
+                : AUDIT_MODE_LABELS[snapshot?.mode ?? mode]}
+            </Badge>
+            {running ? (
+              <>
+                <span className="font-mono text-xs text-slate-500 tabular-nums">
+                  {elapsed}s
+                </span>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => void cancel()}
+                >
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" size="sm" onClick={reset}>
+                <RotateCcw className="size-3.5" aria-hidden /> New audit
+              </Button>
+            )}
+          </div>
+
+          <div
+            className="mt-3 h-1 overflow-hidden rounded-full bg-white/6"
+            role="progressbar"
+            aria-valuenow={progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            <div
+              className={cn(
+                "h-full rounded-full transition-all duration-700",
+                running
+                  ? "bg-linear-to-r from-ts-500 to-cyan-400"
+                  : "bg-emerald-400",
+              )}
+              style={{ width: `${phase === "completed" ? 100 : progress}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-0 lg:grid-cols-5">
+          <div className="border-b border-white/6 p-5 sm:p-6 lg:col-span-2 lg:border-r lg:border-b-0">
+            <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
+              Tool plan
+            </p>
+
+            <ul className="space-y-2">
+              {plan.map((label) => {
+                const record = tools.find((t) => labelMatches(t.name, label));
+                const status = record?.status ?? "pending";
+
+                return (
+                  <li
+                    key={label}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-all",
+                      status === "running" &&
+                        "border-cyan-400/40 bg-cyan-400/6",
+                      status === "completed" &&
+                        "border-emerald-400/20 bg-emerald-400/4",
+                      status === "failed" &&
+                        "border-sev-critical/30 bg-sev-critical/6",
+                      status === "pending" &&
+                        "border-white/6 bg-white/2 opacity-60",
+                    )}
+                  >
+                    {status === "running" ? (
+                      <Loader2
+                        className="size-4 animate-spin text-cyan-300"
+                        aria-hidden
+                      />
+                    ) : status === "completed" ? (
+                      <CheckCircle2
+                        className="size-4 text-emerald-400"
+                        aria-hidden
+                      />
+                    ) : status === "failed" ? (
+                      <XCircle
+                        className="size-4 text-sev-critical"
+                        aria-hidden
+                      />
+                    ) : (
+                      <span
+                        className="size-4 rounded-full border border-slate-600"
+                        aria-hidden
+                      />
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-xs font-medium text-slate-200">
+                        {label}
+                      </span>
+                      {record?.summary ? (
+                        <span className="block truncate font-mono text-[10px] text-slate-500">
+                          {record.summary}
+                        </span>
+                      ) : null}
+                    </span>
+                  </li>
+                );
+              })}
+
+              {snapshot?.status === "synthesizing" || phase === "completed" ? (
+                <li
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg border px-3 py-2.5",
+                    phase === "completed"
+                      ? "border-emerald-400/20 bg-emerald-400/4"
+                      : "border-cyan-400/40 bg-cyan-400/6",
+                  )}
+                >
+                  {phase === "completed" ? (
+                    <CheckCircle2
+                      className="size-4 text-emerald-400"
+                      aria-hidden
+                    />
+                  ) : (
+                    <Sparkles
+                      className="size-4 animate-pulse text-cyan-300"
+                      aria-hidden
+                    />
+                  )}
+                  <span className="text-xs font-medium text-slate-200">
+                    Synthesizing report
+                  </span>
+                </li>
+              ) : null}
+            </ul>
+          </div>
+
+          <div className="p-5 sm:p-6 lg:col-span-3">
+            <p className="mb-3 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
+              Agent activity <span>{snapshot?.events.length ?? 0} events</span>
+            </p>
+
+            <div
+              ref={timelineRef}
+              className="slim-scroll h-72 space-y-1 overflow-y-auto rounded-xl border border-white/6 bg-ink-950/70 p-3 lg:h-80"
+            >
+              {(snapshot?.events ?? []).map((event, idx, arr) => {
+                const Icon = EVENT_ICON[event.type] ?? Wrench;
+                const isLatest = idx === arr.length - 1 && running;
+
+                return (
+                  <div
+                    key={event.id}
+                    className="flex items-start gap-2.5 rounded-md px-2 py-1.5 animate-fade-in"
+                  >
+                    <Icon
+                      className={cn(
+                        "mt-0.5 size-3.5 shrink-0",
+                        eventColor(event.type),
+                        isLatest &&
+                          event.type === "tool.started" &&
+                          "animate-spin",
+                      )}
+                      aria-hidden
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs leading-relaxed text-slate-300">
+                        {event.label}
+                      </p>
+                      {event.detail ? (
+                        <p className="truncate font-mono text-[10px] text-slate-600">
+                          {event.detail}
+                        </p>
+                      ) : null}
+                    </div>
+                    <time className="shrink-0 font-mono text-[10px] text-slate-700">
+                      {new Date(event.at).toLocaleTimeString([], {
+                        hour12: false,
+                      })}
+                    </time>
+                  </div>
+                );
+              })}
+
+              {(snapshot?.events.length ?? 0) === 0 ? (
+                <p className="px-2 py-6 text-center font-mono text-xs text-slate-600">
+                  Booting agent…
+                </p>
+              ) : null}
+            </div>
+            <p className="mt-2 text-right font-mono text-[10px] text-slate-700">
+              operational events only — no model reasoning is exposed
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      {phase === "completed" && snapshot?.report ? (
+        <ReportView report={snapshot.report} />
+      ) : null}
+    </div>
+  );
 };
 
 export default AuditWorkspace;
+
+function labelMatches(toolName: string, label: string): boolean {
+  const map: Record<string, string> = {
+    fetch_website_snapshot: "fetch",
+    inspect_html_structure: "html structure",
+    inspect_images: "images",
+    inspect_links: "links",
+    inspect_security_headers: "security headers",
+    inspect_seo: "seo",
+    inspect_performance: "performance",
+  };
+  return label.toLowerCase().includes(map[toolName] ?? toolName);
+}
