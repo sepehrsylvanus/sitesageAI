@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
-import AuditWorkspace from "@/components/audit/audit-workspace";
+import { AuditWorkspace } from "@/components/audit/audit-workspace";
 import { isDemoMode } from "@/lib/env";
 
 const AuditPage = async ({
