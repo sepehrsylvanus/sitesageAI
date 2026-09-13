@@ -114,11 +114,9 @@ export function inspectImages(html: string, baseUrl: string): ImagesAnalysis {
       }
     }
 
-    if (img.attr("loading") === "lazy") {
-      lazyLoaded += 1;
-      if (img.attr("width") !== undefined && img.attr("height") !== undefined) {
-        withWidthHeight += 1;
-      }
+    if (img.attr("loading") === "lazy") lazyLoaded += 1;
+    if (img.attr("width") !== undefined && img.attr("height") !== undefined) {
+      withWidthHeight += 1;
     }
 
     return true;

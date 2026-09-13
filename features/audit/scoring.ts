@@ -53,7 +53,7 @@ function scoreSeo(bundle: AnalysisBundle): CategoryScoreResult {
   if (!bundle.seo)
     return { category: "seo", evaluated: false, score: null, deductions: [] };
   const deductions: ScoreDeduction[] = bundle.seo.checks
-    .filter((c) => c.ok)
+    .filter((c) => !c.ok)
     .map((c) => ({ label: c.title, points: SEVERITY_PENALTY[c.severity] }));
 
   return {

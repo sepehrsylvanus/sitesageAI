@@ -50,11 +50,15 @@ export async function executeAuditRun(runId: string): Promise<void> {
         "AI_UNAVAILABLE",
         "The AI provider is not configured.",
       );
-    await run;
-  } catch (error) {}
+    await runRealAgent(run, client);
+  } catch (error) {
+    run.status = "failed";
+    run.error = toSafeErrorPayload(error);
+    emitEvent(run, "run.failed", run.error.message);
+  }
 }
 
-async function rnuRealAgent(run: AuditRun, client: OpenAI): Promise<void> {
+async function runRealAgent(run: AuditRun, client: OpenAI): Promise<void> {
   const auditedUrl = normalizeUrl(run.requestedUrl);
   const allowedTools = AGENT_TOOLS.filter((t) =>
     TOOLS_BY_MODE[run.mode].includes(t.name),
@@ -227,6 +231,30 @@ async function rnuRealAgent(run: AuditRun, client: OpenAI): Promise<void> {
   });
 
   const modelOutput = await requestStructuredReport(client, messages);
+
+  const report = composeAuditReport({
+    runId: run.id,
+    auditedUrl,
+    finalUrl: ctx.bundle.snapshot?.finalUrl ?? auditedUrl,
+    mode: run.mode,
+    demoMode: false,
+    model: getModelName(),
+    modelOutput,
+    deterministicFindings,
+    scores,
+    toolsUsed: run.tools.map((t) => ({
+      name: t.name,
+      status: t.status === "failed" ? "failed" : "completed",
+      durationMs: t.durationMs ?? 0,
+    })),
+    performanceDataSource: ctx.bundle.performance?.source ?? null,
+  });
+
+  run.report = report;
+  run.status = "completed";
+  emitEvent(run, "report.completed", "Audit report ready", {
+    detail: `${report.findings.length} findings · overall ${report.overallScore ?? "n/a"}/100`,
+  });
 }
 
 function wasCancelled(run: AuditRun): boolean {

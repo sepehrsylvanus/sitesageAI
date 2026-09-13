@@ -98,9 +98,7 @@ export function AuditWorkspace({
     }
   }, []);
 
-  useEffect(() => {
-    stopPolling;
-  }, [stopPolling]);
+  useEffect(() => stopPolling, [stopPolling]);
 
   useEffect(() => {
     if (phase !== "running") return;
