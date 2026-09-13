@@ -282,7 +282,7 @@ async function requestStructuredReport(
         response_format: { type: "json_object" },
       });
 
-      const content = res.choices[0]?.message?.content;
+      content = res.choices[0]?.message?.content;
     } catch {
       const res = await client.chat.completions.create(request);
       content = res.choices[0]?.message?.content;

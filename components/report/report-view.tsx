@@ -98,6 +98,72 @@ function FindingCard({ finding, index }: { finding: Finding; index: number }) {
       <p className="mt-1.5 text-sm leading-relaxed text-slate-400">
         {finding.description}
       </p>
+
+      {finding.evidence ? (
+        <div className="mt-4">
+          <p className="mb-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">
+            Evidence
+          </p>
+
+          <pre className="slim-scroll overflow-x-auto rounded-lg border border-white/[0.07] bg-ink-950/90 p-3 font-mono text-xs leading-relaxed text-cyan-200/90 whitespace-pre-wrap wrap-break-word">
+            {finding.evidence}
+          </pre>
+        </div>
+      ) : null}
+
+      {finding.affectedElements.length > 0 ? (
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">
+            Affected:
+          </span>
+
+          {finding.affectedElements.map((el) => (
+            <code
+              key={el}
+              className="rounded bg-white/6 px-1.5 py-0.5 font-mono text-[11px] text-slate-300"
+            >
+              {el}
+            </code>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="mt-4 rounded-xl border border-emerald-400/12 bg-emerald-400/5 p-4">
+        <p className="mb-1 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-300/80">
+          <Sparkles className="size-3" aria-hidden /> Recommendation
+        </p>
+        <p className="text-sm leading-relaxed text-slate-300">
+          {finding.recommendation}
+        </p>
+      </div>
+
+      {finding.codeExample ? (
+        <div className="mt-3 overflow-hidden rounded-xl border border-white/[0.07]">
+          <div className="flex items-center justify-between border-b border-white/6 bg-ink-800/70 px-3 py-1.5">
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">
+              Code fix
+            </span>
+            <CopyButton text={finding.codeExample} label="Copy fix" />
+          </div>
+
+          <pre className="slim-scroll overflow-x-auto bg-ink-950/90 p-4 font-mono text-xs leading-relaxed text-slate-300">
+            {finding.codeExample}
+          </pre>
+        </div>
+      ) : null}
+
+      <div className="mt-4 flex items-center gap-2">
+        <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/6">
+          <div
+            className="h-full rounded-full bg-linear-to-r from-ts-500 to-cyan-400"
+            style={{ width: `${Math.round(finding.confidence * 100)}%` }}
+          />
+        </div>
+
+        <span className="font-mono text-[10px] text-slate-500">
+          {Math.round(finding.confidence * 100)}% confidence
+        </span>
+      </div>
     </Card>
   );
 }
